@@ -182,7 +182,7 @@ function TextGauge:setValue(current,max)
   local perc = (current / max)
   local fillWidth = math.floor(perc * width)
   local emptyWidth = width - fillWidth
-  if value == 100 then fillWidth = fillWidth -1 end
+  if value == 100 and self.showPercent then fillWidth = fillWidth -1 end
   return string.format("%s%s%s%s%s%s%s%s%s", fillColor, string.rep(fillCharacter, fillWidth),resetColor, emptyColor, string.rep(emptyCharacter, emptyWidth), resetColor, percentString, percentSymbolString, resetColor)
 end
 
