@@ -1,7 +1,7 @@
 ---TextGauges
 -- Creates a text based gauge, for use in miniconsoles and the like.
 --@module TextGauge
-TextGauge = {
+local TextGauge = {
   width = 24,
   fillCharacter = ":",
   emptyCharacter = "-",
@@ -25,7 +25,7 @@ function TextGauge:setFormat(format)
 end
 
 --- Sets the character to use for the 'full' part of the gauge
---@tparam string character the character to use. 
+--@tparam string character the character to use.
 function TextGauge:setFillCharacter(character)
   assert(character ~= nil, "TextGauge:setFillCharacter(character): character required, got nil")
   assert(utf8.len(character) == 1, "TextGauge:setFillCharacter(character): character must be a single character")
@@ -33,7 +33,7 @@ function TextGauge:setFillCharacter(character)
 end
 
 --- Sets the character to use for the 'full' part of the gauge
---@tparam string character the character to use. 
+--@tparam string character the character to use.
 function TextGauge:setEmptyCharacter(character)
   assert(character ~= nil, "TextGauge:setEmptyCharacter(character): character required, got nil")
   assert(utf8.len(character) == 1, "TextGauge:setEmptyCharacter(character): character must be a single character")
@@ -171,7 +171,7 @@ function TextGauge:setValue(current,max)
   local percentColor = self:getColor(self.percentColor)
   local percentSymbolColor = self:getColor(self.percentSymbolColor)
   local resetColor = self.resetColor
-  if self.showPercent then 
+  if self.showPercent then
     percentString = string.format("%s%02d%s", percentColor, value, resetColor)
     width = width - 2
   end
@@ -198,10 +198,12 @@ function TextGauge:new(options)
   options = options or {}
   local optionsType = type(options)
   assert(optionsType == "table" or optionsType == "nil", "TextGauge:new(options): options expected as table, got " .. optionsType )
-  
+
   local me = table.deepcopy(options)
   setmetatable(me, self)
   self.__index = self
   me:setDefaultColors()
   return me
 end
+
+return TextGauge
