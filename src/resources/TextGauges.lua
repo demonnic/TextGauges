@@ -1,6 +1,6 @@
----TextGauges
--- Creates a text based gauge, for use in miniconsoles and the like.
---@module TextGauge
+--- Creates a text based gauge, for use in miniconsoles and the like.
+--@classmod TextGauge
+
 local TextGauge = {
   width = 24,
   fillCharacter = ":",
