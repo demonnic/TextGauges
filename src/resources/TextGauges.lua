@@ -1,5 +1,8 @@
 --- Creates a text based gauge, for use in miniconsoles and the like.
 --@classmod TextGauge
+--@author Damian Monogue <demonnic@gmail.com>
+--@copyright 2020 Damian Monogue
+--@license MIT, see LICENSE.lua
 
 local TextGauge = {
   width = 24,
@@ -10,6 +13,97 @@ local TextGauge = {
   format = "c",
   value = 50,
 }
+
+--- Creates a new TextGauge.
+-- Please see the wiki for more information on valid options.
+--@tparam[opt] table options The table of options you would like the TextGauge to start with.
+--<br><br>Table of new options
+-- <table class="tg">
+-- <thead>
+--   <tr>
+--     <th>option name</th>
+--     <th>description</th>
+--     <th>default</th>
+--   </tr>
+-- </thead>
+-- <tbody>
+--   <tr>
+--     <td class="tg-odd">width</td>
+--     <td class="tg-odd">How many characters wide to make the gauge</td>
+--     <td class="tg-odd">24</td>
+--   </tr>
+--   <tr>
+--     <td class="tg-even">fillCharacter</td>
+--     <td class="tg-even">What character to use for the 'full' part of the gauge</td>
+--     <td class="tg-even">:</td>
+--   </tr>
+--   <tr>
+--     <td class="tg-odd">overflowCharacter</td>
+--     <td class="tg-odd">What character to use for >100% part of the gauge</td>
+--     <td class="tg-odd">if not set, it uses whatever you set fillCharacter to</td>
+--   </tr>
+--   <tr>
+--     <td class="tg-even">emptyCharacter</td>
+--     <td class="tg-even">What character to use for the 'empty' part of the gauge</td>
+--     <td class="tg-even">-</td>
+--   </tr>
+--   <tr>
+--     <td class="tg-odd">showPercentSymbol</td>
+--     <td class="tg-odd">Should we show the % sign itself?</td>
+--     <td class="tg-odd">true</td>
+--   </tr>
+--   <tr>
+--     <td class="tg-even">showPercent</td>
+--     <td class="tg-even">Should we show what % of the gauge is filled?</td>
+--     <td class="tg-even">true</td>
+--   </tr>
+--   <tr>
+--     <td class="tg-odd">value</td>
+--     <td class="tg-odd">How much of the gauge should be filled</td>
+--     <td class="tg-odd">50</td>
+--   </tr>
+--   <tr>
+--     <td class="tg-even">format</td>
+--     <td class="tg-even">What type of color formatting to use? 'c' for cecho, 'd' for decho, 'h' for hecho</td>
+--     <td class="tg-even">c</td>
+--   </tr>
+--   <tr>
+--     <td class="tg-odd">fillColor</td>
+--     <td class="tg-odd">What color to make the full part of the bar?</td>
+--     <td class="tg-odd">"DarkOrange" or equivalent for your format type</td>
+--   </tr>
+--   <tr>
+--     <td class="tg-even">emptyColor</td>
+--     <td class="tg-even">what color to use for the empty part of the bar?</td>
+--     <td class="tg-even">"white" or format appropriate equivalent</td>
+--   </tr>
+--   <tr>
+--     <td class="tg-odd">percentColor</td>
+--     <td class="tg-odd">What color to print the percentage numvers in, if shown?</td>
+--     <td class="tg-odd">"white" or fortmat appropriate equivalent</td>
+--   </tr>
+--   <tr>
+--     <td class="tg-even">percentSymbolColor</td>
+--     <td class="tg-even">What color to make the % if shown?</td>
+--     <td class="tg-even">If not set, uses what percentColor is set to.</td>
+--   </tr>
+--   <tr>
+--     <td class="tg-odd">overflowColor</td>
+--     <td class="tg-odd">What color to make the >100% portion of the bar?</td>
+--     <td class="tg-odd">If not set, will use the same color as fillColor</td>
+--   </tr>
+-- </tbody>
+-- </table>
+function TextGauge:new(options)
+  options = options or {}
+  local optionsType = type(options)
+  assert(optionsType == "table" or optionsType == "nil", "TextGauge:new(options): options expected as table, got " .. optionsType )
+  local me = table.deepcopy(options)
+  setmetatable(me, self)
+  self.__index = self
+  me:setDefaultColors()
+  return me
+end
 
 --- Sets the width in characters of the gauge
 --@tparam number width number of characters wide to make the gauge
@@ -32,6 +126,14 @@ function TextGauge:setFillCharacter(character)
   self.fillCharacter = character
 end
 
+--- Sets the character to use for the 'overflow' (>100%) part of the gauge
+--@tparam string character the character to use.
+function TextGauge:setOverflowCharacter(character)
+  assert(character ~= nil, "TextGauge:setOverflowCharacter(character): character required, got nil")
+  assert(utf8.len(character) == 1, "TextGauge:setOverflowCharacter(character): character must be a single character")
+  self.overflowCharacter = character
+end
+
 --- Sets the character to use for the 'full' part of the gauge
 --@tparam string character the character to use.
 function TextGauge:setEmptyCharacter(character)
@@ -45,6 +147,13 @@ end
 function TextGauge:setFillColor(color)
   assert(color ~= nil, "TextGauge:setFillColor(color): color required, got nil")
   self.fillColor = color
+end
+
+--- Sets the overflow color for the gauge.
+--@tparam string color the color to use for the full portion of the gauge. Will be run through Geyser.Golor
+function TextGauge:setOverflowColor(color)
+  assert(color ~= nil, "TextGauge:setOverflowColor(color): color required, got nil")
+  self.overflowColor = color
 end
 
 --- Sets the empty color for the gauge.
@@ -131,6 +240,7 @@ function TextGauge:setDefaultColors()
     self.emptyColor = self.emptyColor or ""
     self.resetColor = ""
   end
+  self.overflowColor = self.overflowColor or self.fillColor
 end
 
 -- Internal function used to route Geyser.Color based on internally stored format
@@ -159,14 +269,15 @@ function TextGauge:setValue(current,max)
   if current < 0 then current = 0 end
   max = max or 100
   local value = math.floor(current / max * 100)
-  if value > 100 then value = 100 end
   self.value = value
   local width = self.width
   local percentString = ""
   local percentSymbolString = ""
   local fillCharacter = self.fillCharacter
+  local overflowCharacter = self.overflowCharacter or fillCharacter
   local emptyCharacter = self.emptyCharacter
   local fillColor = self:getColor(self.fillColor)
+  local overflowColor = self:getColor(self.overflowColor)
   local emptyColor = self:getColor(self.emptyColor)
   local percentColor = self:getColor(self.percentColor)
   local percentSymbolColor = self:getColor(self.percentSymbolColor)
@@ -179,31 +290,25 @@ function TextGauge:setValue(current,max)
     percentSymbolString = string.format("%s%s%s", percentSymbolColor, "%", resetColor)
     width = width - 1
   end
-  local perc = (current / max)
-  local fillWidth = math.floor(perc * width)
+  local perc = value / 100
+  local overflow = perc - 1
+  if overflow < 0 then overflow = 0 end
+  if overflow > 1 then
+    perc = 2
+    overflow = 1
+  end
+  local overflowWidth = math.floor(overflow * width)
+  local fillWidth = math.floor((perc - overflow) * width)
   local emptyWidth = width - fillWidth
-  if value == 100 and self.showPercent then fillWidth = fillWidth -1 end
-  return string.format("%s%s%s%s%s%s%s%s%s", fillColor, string.rep(fillCharacter, fillWidth),resetColor, emptyColor, string.rep(emptyCharacter, emptyWidth), resetColor, percentString, percentSymbolString, resetColor)
+  fillWidth = fillWidth - overflowWidth
+  if value >= 100 and self.showPercent then fillWidth = fillWidth -1 end
+  if value >= 200 and self.showPercent then overflowWidth = overflowWidth -1 end
+  return string.format("%s%s%s%s%s%s%s%s%s%s%s", overflowColor, string.rep(overflowCharacter, overflowWidth), fillColor, string.rep(fillCharacter, fillWidth),resetColor, emptyColor, string.rep(emptyCharacter, emptyWidth), resetColor, percentString, percentSymbolString, resetColor)
 end
 
 --- Synonym for setValue
 function TextGauge:print(...)
   self:setValue(...)
-end
-
---- Creates a new TextGauge.
--- Please see the wiki for more information on valid options.
---@tparam[opt] table options The table of options you would like the TextGauge to start with.
-function TextGauge:new(options)
-  options = options or {}
-  local optionsType = type(options)
-  assert(optionsType == "table" or optionsType == "nil", "TextGauge:new(options): options expected as table, got " .. optionsType )
-
-  local me = table.deepcopy(options)
-  setmetatable(me, self)
-  self.__index = self
-  me:setDefaultColors()
-  return me
 end
 
 return TextGauge
